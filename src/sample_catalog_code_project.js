@@ -22,6 +22,57 @@
                     }
                 }
             ]
+        },
+        {
+            name: "summarizeNewEmail",
+            label: "Summarize New Email",
+            description: "Runs for every new email in the connected user's inbox and logs who sent it.",
+            // Provisioning binds the trigger to one of the connected user's Gmail connections - for example the
+            // one they created when they connected a Gmail integration.
+            triggers: [{name: "newEmail", type: "googleMail/v1/newEmailPolling", parameters: {format: "SIMPLE"}}],
+            outputs: [{name: "summary", task: "summarize"}],
+            tasks: [
+                {
+                    name: "summarize",
+                    label: "Summarize",
+                    perform: function (context) {
+                        const email = context.input("newEmail");
+
+                        const summary = "New email from " + email.from + ": " + email.subject;
+
+                        context.log("info", summary);
+
+                        return summary;
+                    }
+                }
+            ]
+        },
+        {
+            name: "fetchRecentEmails",
+            label: "Fetch Recent Emails",
+            description: "Returns the connected user's most recent emails, optionally only those from one sender.",
+            triggers: [{name: "request", type: "request/v1/awaitWorkflowAndRespond"}],
+            outputs: [{name: "emails", task: "fetchEmails"}],
+            tasks: [
+                {
+                    name: "fetchEmails",
+                    label: "Fetch Emails",
+                    // A task names the connections it uses. Provisioning binds each one to a connection of the
+                    // connected user on the same component.
+                    connections: [{componentName: "googleMail", name: "gmail"}],
+                    perform: function (context) {
+                        const request = context.input()["request"] || {};
+                        const body = request.body || {};
+
+                        const result = context.component.googleMail.searchEmail(
+                            {from: body.from, maxResults: body.maxResults || 10}, "gmail");
+
+                        context.log("info", "Found " + (result.messages || []).length + " emails");
+
+                        return result.messages || [];
+                    }
+                }
+            ]
         }
     ]
 })
