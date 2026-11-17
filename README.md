@@ -3,7 +3,7 @@
 A sample ByteChef **embedded catalog code project** written in JavaScript. The whole project is one file,
 [`src/sample_catalog_code_project.js`](src/sample_catalog_code_project.js), and that file is what you deploy - there
 is no build step. The file is a single parenthesized object expression, `({ ... })`. The server evaluates it and
-reads the object's `name`, `description`, `version` and `workflows`, then calls each task's `perform(context)`
+reads the object's `name`, `description`, `version` and `workflows`, then calls each task's `perform(input, context)`
 when the workflow runs. Keep it a bare expression: a bundler or module wrapper hides the object from the server.
 
 A catalog project is an ordinary automation code project - the same format the automation `ProjectHandler` path
@@ -35,7 +35,7 @@ A task names the connections it uses and calls a component action through one of
 
 ```javascript
 connections: [{componentName: "googleMail", name: "gmail"}],
-perform: function (context) {
+perform: function (input, context) {
     return context.component.googleMail.searchEmail({maxResults: 10}, "gmail");
 }
 ```
@@ -59,9 +59,10 @@ needs only Node.js; the JavaScript file has no dependencies to install.
 
 [`src/sample_catalog_code_project.ts`](src/sample_catalog_code_project.ts) is the same project written in TypeScript. It
 takes its types from [`@bytechef/workflow-api`](https://www.npmjs.com/package/@bytechef/workflow-api) through a
-`/// <reference types="@bytechef/workflow-api" />` directive and ends in `satisfies ByteChef.ProjectDefinition`, so
-`context` is typed inside every `perform` and a missing `name` or a misspelled `perform` fails the build. The server
-runs only JavaScript, so compile the file and deploy the output:
+`/// <reference types="@bytechef/workflow-api" />` directive and ends in `satisfies ByteChef.ProjectDefinition`, so a
+missing `name` or a misspelled `perform` fails the build. TypeScript does not infer the parameter types of a
+two-parameter `perform`, so each one annotates `input` and `context` with `ByteChef.TaskInput` and
+`ByteChef.TaskContext`. The server runs only JavaScript, so compile the file and deploy the output:
 
 ```bash
 npm install

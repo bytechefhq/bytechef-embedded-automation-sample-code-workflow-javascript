@@ -13,7 +13,7 @@
                 {
                     name: "greet",
                     label: "Greet",
-                    perform: function (context) {
+                    perform: function (input, context) {
                         context.log("info", "Greeting from the embedded catalog");
 
                         return "Hello from the embedded catalog";
@@ -31,8 +31,8 @@
                 {
                     name: "summarize",
                     label: "Summarize",
-                    perform: function (context) {
-                        const email = context.input("newEmail");
+                    perform: function (input, context) {
+                        const email = input.newEmail;
 
                         const summary = "New email from " + email.from + ": " + email.subject;
 
@@ -54,8 +54,8 @@
                     name: "fetchEmails",
                     label: "Fetch Emails",
                     connections: [{componentName: "googleMail", name: "gmail"}],
-                    perform: function (context) {
-                        const request = context.input()["request"] || {};
+                    perform: function (input, context) {
+                        const request = input.request || {};
                         const body = request.body || {};
 
                         const result = context.component.googleMail.searchEmail(
@@ -86,13 +86,13 @@
                     label: "Post to Slack",
                     description: "Posts the sender and subject with the Slack Send Channel Message action.",
                     connections: [{componentName: "slack", name: "slack"}],
-                    perform: function (context) {
-                        const email = context.input("newEmail");
+                    perform: function (input, context) {
+                        const email = input.newEmail;
 
                         const text = "New email from " + email.from + ": " + email.subject;
 
                         const message = context.component.slack.sendChannelMessage(
-                            {channel: context.input("channel"), text: text}, "slack");
+                            {channel: input.channel, text: text}, "slack");
 
                         context.log("info", "Posted to Slack: " + text);
 
